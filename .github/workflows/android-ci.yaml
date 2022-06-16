@@ -25,7 +25,7 @@ jobs:
         run: chmod +x gradlew
 
       - name: Build with gradle
-        run: gradlew rebuild
+        run: ./gradlew rebuild --no-build-cache
 
       - name: Upload debug apk
         uses: actions/upload-artifact@v3
