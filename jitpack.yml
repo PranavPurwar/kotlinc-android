@@ -1,0 +1,12 @@
+
+jdk:
+  - openjdk11
+
+install:
+  - ./gradlew clean :kotlin-compiler:assemble
+  - ./gradlew publishPatchedCompilerPublicationToMavenLocal
+
+script:
+  - ./gradlew assemble
+
+
