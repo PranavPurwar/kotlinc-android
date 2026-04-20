@@ -3,7 +3,7 @@ agp = "9.3.0-alpha01"
 coreKtx = "1.18.0"
 appcompat = "1.7.1"
 activityKtx = "1.13.0"
-jetbrainsKotlinJvm = "2.3.20"
+jetbrainsKotlinJvm = "2.3.21-RC2"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
