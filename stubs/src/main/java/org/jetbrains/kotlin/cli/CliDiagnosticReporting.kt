@@ -5,7 +5,7 @@
 
 package org.jetbrains.kotlin.cli
 
-//import org.jetbrains.kotlin.cli.common.diagnosticsCollector
+import org.jetbrains.kotlin.KtSourceFile
 import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSeverity
 import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSourceLocation
 import org.jetbrains.kotlin.config.CompilerConfiguration
@@ -25,13 +25,13 @@ fun CompilerConfiguration.report(
         override val languageVersionSettings: LanguageVersionSettings
             get() = this@report.languageVersionSettings
 
-        override val containingFilePath: String? get() = null
+        override val containingFile: KtSourceFile? get() = null
 
         override fun isDiagnosticSuppressed(diagnostic: KtDiagnostic): Boolean = false
     }
 
     //context(context) {
-    //    //diagnosticsCollector.report(factory, message, location)
+    //    diagnosticsCollector.report(factory, message, location)
     //}
 }
 
