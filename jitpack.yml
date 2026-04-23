@@ -1,11 +1,12 @@
-
 jdk:
   - openjdk17
-
-install:
-  - ./gradlew clean publishPatchedToMavenLocal
-
-script:
-  - ./gradlew assemble
-
-
+before_install:
+  - |
+    if [[ "$GIT_TAG" == kotlin-* ]]; then
+      ./gradlew publishPatchedKotlinCompilerPublicationToMavenLocal
+    elif [[ "$GIT_TAG" == jdk-* ]]; then
+      ./gradlew publishPatchedJavaCompilerPublicationToMavenLocal
+    else
+      echo "Unknown tag prefix. Use kotlinc-* or javac-* as tag prefix."
+      exit 1
+    fi
