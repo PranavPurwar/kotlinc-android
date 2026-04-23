@@ -8,9 +8,14 @@ import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import com.sun.tools.javac.ConfigProvider
+import com.sun.tools.javac.main.JavaCompiler
 import org.jetbrains.kotlin.cli.common.messages.MessageRenderer
 import org.jetbrains.kotlin.cli.jvm.K2JVMCompiler
-import java.io.*
+import java.io.OutputStream
+import java.io.PrintStream
+import java.io.PrintWriter
+import java.io.StringWriter
 
 class MainActivity: AppCompatActivity() {
 
@@ -29,24 +34,16 @@ class MainActivity: AppCompatActivity() {
         val outputView = findViewById<TextView>(R.id.outputView)
         val runBtn = findViewById<Button>(R.id.runButton)
 
-        // Create a sample file once
-        val sampleFile = File(cacheDir, "test.kt")
-        if (!sampleFile.exists()) {
-            sampleFile.writeText(
-                """
-                fun main() {
-                    println("Hello from Kotlin CLI!")
-                }
-                """.trimIndent()
-            )
-        }
-
         runBtn.setOnClickListener {
             val command = input.text.toString()
 
             val result = when {
+                command.startsWith("javac ") -> {
+                    runJavac(command.removePrefix("javac "))
+                }
+
                 command.startsWith("kotlinc ") -> {
-                    runCompilerCommand(command.removePrefix("kotlinc "))
+                    runKotlinc(command.removePrefix("kotlinc "))
                 }
 
                 command == "ls" -> {
@@ -64,40 +61,18 @@ class MainActivity: AppCompatActivity() {
         }
     }
 
-    // -----------------------------------
-    // Run Kotlin compiler with user args
-    // -----------------------------------
-    private fun runCompilerCommand(command: String): String {
+    private fun runKotlinc(command: String): String {
         return try {
             val args = parseArgs(command).toMutableList()
-
-            // 🔒 Basic validation
-            if (args.none { it.endsWith(".kt") }) {
-                return "Error: No .kt file provided"
-            }
-
-            // Replace shortcuts like "test.kt"
-            for (i in args.indices) {
-                if (args[i].endsWith(".kt") && !args[i].startsWith("/")) {
-                    args[i] = File(cacheDir, args[i]).absolutePath
-                }
-            }
-
-            // Ensure output directory exists
-            if (!args.contains("-d")) {
-                args.add("-d")
-                args.add(cacheDir.absolutePath)
-            }
 
             val output = StringWriter()
             val writer = PrintWriter(output)
 
-            val stream = PrintStream(object : OutputStream() {
+            val stream = PrintStream(object: OutputStream() {
                 override fun write(p0: Int) {
                     writer.write(p0)
                 }
             })
-
 
                 val compiler = K2JVMCompiler()
 
@@ -115,51 +90,90 @@ class MainActivity: AppCompatActivity() {
                 appendLine("----- Output -----")
                 append(output.toString())
             }
+        } catch (e: Exception) {
+            e.stackTraceToString()
+        }
+    }
+
+    private fun runJavac(command: String): String {
+        return try {
+
+            val args = parseArgs(command).toMutableList()
+
+            val cleanedArgs = mutableListOf<String>()
+
+            var i = 0
+            while (i < args.size) {
+                when (args[i]) {
+
+                    "-javaHome" -> {
+                        if (i + 1 < args.size) {
+                            val path = args[i + 1]
+                            ConfigProvider.setJavaHome(path)
+                            i += 2
+                            continue
+                        }
+                    }
+
+                    else -> cleanedArgs.add(args[i])
+                }
+                i++
+            }
+
+            val output = StringWriter()
+            val writer = PrintWriter(output)
+
+            com.sun.tools.javac.Main.compile(
+                cleanedArgs.toTypedArray(),
+                writer
+            )
+
+            writer.flush()
+
+            buildString {
+                appendLine("JAVA_HOME = ${ConfigProvider.getJavaHome()}")
+                appendLine("Args: ${cleanedArgs.joinToString(" ")}")
+                appendLine("----- Output -----")
+                append(output.toString())
+            }
 
         } catch (e: Exception) {
             e.stackTraceToString()
         }
     }
 
-    // -----------------------------------
-    // Argument parser (supports quotes)
-    // -----------------------------------
     private fun parseArgs(input: String): Array<String> {
         val regex = Regex("""[^\s"]+|"([^"]*)"""")
         return regex.findAll(input)
             .map { it.value.replace("\"", "") }
             .toList()
             .toTypedArray()
+
     }
 
-    // -----------------------------------
-    // List files in cache
-    // -----------------------------------
     private fun listFiles(): String {
         return cacheDir.listFiles()
             ?.joinToString("\n") { it.name }
             ?: "Empty"
     }
 
-    // -----------------------------------
-    // Help text
-    // -----------------------------------
     private fun helpText(): String {
         return """
 Available commands:
 
-kotlinc <args>     → Run Kotlin compiler
+${JavaCompiler.fullVersion()}
+
+javac <args>       → Run Java compiler
+kotlinc <args>     → Run Kotlinc compiler
 ls                 → List files
 help               → Show this help
 
 Examples:
 
-kotlinc test.kt -d out
-kotlinc test.kt -Xcontext-receivers
-kotlinc "test.kt" -d "out dir"
+javac -javaHome <path_to_home> --version
+kotlinc --version
 
 Notes:
-- test.kt is auto-resolved from cache directory
 - Output directory defaults to cache if not provided
         """.trimIndent()
     }

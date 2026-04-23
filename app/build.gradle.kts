@@ -5,9 +5,7 @@ plugins {
 android {
     namespace = "dev.pranav.kotlincompiler"
     compileSdk {
-        version = release(36) {
-            minorApiLevel = 1
-        }
+        version = release(37)
     }
 
     defaultConfig {
@@ -31,13 +29,23 @@ android {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
     }
+
+    packaging {
+        resources.excludes += "README.md"
+        resources.excludes += "SECURITY.md"
+    }
 }
 
 dependencies {
     val kotlinCompilerVersion: String by project
+    val javaCompilerVersion: String by project
+
     implementation(libs.androidx.activity.ktx)
     implementation(libs.androidx.appcompat)
     implementation(libs.androidx.core.ktx)
 
-    implementation("dev.pranav.kotlin:kotlin-compiler-android:${kotlinCompilerVersion}-patched")
+    implementation("com.github.Cosmic-IDE.kotlinc-android:jaxp:fce2462f00")
+
+    implementation("dev.pranav.kotlin:kotlin-compiler-android:$kotlinCompilerVersion")
+    implementation("dev.pranav.java:javac-android:$javaCompilerVersion")
 }

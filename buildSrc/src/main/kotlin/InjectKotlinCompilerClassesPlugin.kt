@@ -4,7 +4,7 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 
 /**
- * Gradle plugin to inject compiled classes from :kotlinc-compiler into the official kotlin-compiler JAR,
+ * Gradle plugin to inject compiled classes from :kotlin:kotlinc-compiler into the official kotlin-compiler JAR,
  * then publish the patched JAR as a new Gradle module version in the local Maven repository.
  */
 class InjectKotlinCompilerClassesPlugin : Plugin<Project> {
@@ -14,5 +14,4 @@ class InjectKotlinCompilerClassesPlugin : Plugin<Project> {
         }
     }
 }
-
 

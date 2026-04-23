@@ -30,5 +30,10 @@ dependencyResolutionManagement {
 
 rootProject.name = "Kotlin Compiler"
 include(":app")
-include(":kotlin-compiler")
-include(":stubs")
+include(":kotlin:kotlin-compiler")
+include(":kotlin:stubs")
+
+include(":java:javac")
+include(":java:javac8")
+include(":java:jrtfs")
+include(":java:zipfs")

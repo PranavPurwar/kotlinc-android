@@ -31,8 +31,6 @@ kotlin {
 }
 
 dependencies {
-
-
     //noinspection UseTomlInstead
     implementation("org.lsposed.hiddenapibypass:hiddenapibypass:6.1")
     implementation("org.codehaus.woodstox:stax2-api:4.3.0")
@@ -46,6 +44,5 @@ dependencies {
 
     //noinspection GradleDependency
     implementation("org.jetbrains.kotlin:kotlin-compiler:$kotlinCompilerVersion")
-    compileOnly(project(":stubs"))
-
+    compileOnly(project(":kotlin:stubs"))
 }

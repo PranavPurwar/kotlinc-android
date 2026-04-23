@@ -16,7 +16,7 @@ open class PatchKotlinCompilerJarTask : DefaultTask() {
 
     @get:Input
     val sourceProjectPath: Property<String> = project.objects.property(String::class.java).apply {
-        set(project.findProperty("patchSourceProject") as? String ?: ":kotlin-compiler")
+        set(project.findProperty("patchSourceProject") as? String ?: ":kotlin:kotlin-compiler")
     }
 
     @get:Internal
@@ -38,6 +38,13 @@ open class PatchKotlinCompilerJarTask : DefaultTask() {
     val outputDir: DirectoryProperty = project.objects.directoryProperty().convention(project.layout.buildDirectory.dir("patchedKotlinCompilerJar"))
 
     private val layout: ProjectLayout = project.layout
+
+
+    init {
+        dependsOn(
+            sourceProjectPath.map { "$it:compileDebugJavaWithJavac" }
+        )
+    }
 
     @TaskAction
     fun patchJar() {
@@ -70,7 +77,7 @@ open class PatchKotlinCompilerJarTask : DefaultTask() {
 
     private fun resolveSourceProject(): Project? {
         val srcPath = sourceProjectPath.get()
-        return project.rootProject.findProject(srcPath) ?: project.rootProject.findProject(":kotlin-compiler")
+        return project.rootProject.findProject(srcPath) ?: project.rootProject.findProject(":kotlin:kotlin-compiler")
     }
 
     private fun findSourceClassesDirs(): List<File> {

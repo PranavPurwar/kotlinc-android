@@ -1,10 +1,9 @@
 
 jdk:
-  - openjdk11
+  - openjdk17
 
 install:
-  - ./gradlew clean :kotlin-compiler:assemble
-  - ./gradlew publishPatchedCompilerPublicationToMavenLocal
+  - ./gradlew clean publishPatchedToMavenLocal
 
 script:
   - ./gradlew assemble
