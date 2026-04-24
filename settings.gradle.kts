@@ -32,8 +32,3 @@ rootProject.name = "Kotlin Compiler"
 include(":app")
 include(":kotlin:kotlin-compiler")
 include(":kotlin:stubs")
-
-include(":java:javac")
-include(":java:javac8")
-include(":java:jrtfs")
-include(":java:zipfs")

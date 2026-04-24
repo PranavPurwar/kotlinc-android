@@ -36,7 +36,7 @@ dependencies {
     implementation("org.codehaus.woodstox:stax2-api:4.3.0")
 
     implementation("org.jetbrains.kotlin:kotlin-reflect:$kotlinCompilerVersion")
-    implementation("io.github.itsaky:nb-javac-android:17.0.0.3")
+    implementation("com.github.PranavPurwar:javac-android:26.0.0")
     implementation("org.jetbrains.intellij.deps:trove4j:1.0.20200330")
     implementation("org.jdom:jdom:2.0.2")
     implementation("com.google.guava:guava:33.6.0-android")

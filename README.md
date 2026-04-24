@@ -7,8 +7,8 @@ compilers, etc.
 
 ## Included artifacts
 
-- Kotlin compiler (JitPack): `com.github.PranavPurwar:kotlinc-android:2.3.20`
-- Java compiler (JitPack): `com.github.PranavPurwar:javac-android:26+35`
+- Kotlin compiler (JitPack): `com.github.PranavPurwar:kotlinc-android:2.3.21`
+- Java compiler (JitPack): `com.github.PranavPurwar:javac-android:26.0.0`
 
 ## Status
 

@@ -34,8 +34,15 @@ open class PatchKotlinCompilerJarTask : DefaultTask() {
         project.findProperty("stripResources")?.let { set(it as String) }
     }
 
-    @get:OutputDirectory
+    @get:Internal
     val outputDir: DirectoryProperty = project.objects.directoryProperty().convention(project.layout.buildDirectory.dir("patchedKotlinCompilerJar"))
+
+    @get:OutputFile
+    val patchedJarFile = project.objects.fileProperty().convention(
+        outputDir.file(
+            kotlinCompilerVersion.map { "kotlin-compiler-$it-patched.jar" }
+        )
+    )
 
     private val layout: ProjectLayout = project.layout
 
@@ -49,6 +56,9 @@ open class PatchKotlinCompilerJarTask : DefaultTask() {
     @TaskAction
     fun patchJar() {
         val version = kotlinCompilerVersion.orNull ?: throw IllegalArgumentException("Set kotlinCompilerVersion in gradle.properties or with -PkotlinCompilerVersion")
+
+        val patchedJar = patchedJarFile.get().asFile
+
         val kotlinJar = resolveKotlinCompilerJar(version)
 
         val classesDirs = findSourceClassesDirs().filter { it.exists() && it.isDirectory }
@@ -63,7 +73,6 @@ open class PatchKotlinCompilerJarTask : DefaultTask() {
         stripPackagesAndResources(unpackedDir)
         createResources(unpackedDir)
 
-        val patchedJar = outputDir.get().asFile.resolve("kotlin-compiler-$version-patched.jar")
         repackJar(unpackedDir, patchedJar)
         println("Patched jar written to: ${patchedJar.absolutePath}")
     }

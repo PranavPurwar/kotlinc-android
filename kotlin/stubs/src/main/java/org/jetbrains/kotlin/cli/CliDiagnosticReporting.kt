@@ -25,7 +25,7 @@ fun CompilerConfiguration.report(
         override val languageVersionSettings: LanguageVersionSettings
             get() = this@report.languageVersionSettings
 
-        override val containingFilePath: String? get() = null
+        override val containingFile: KtSourceFile? get() = null
 
         override fun isDiagnosticSuppressed(diagnostic: KtDiagnostic): Boolean = false
     }
