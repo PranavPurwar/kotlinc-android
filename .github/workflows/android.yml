@@ -23,8 +23,8 @@ jobs:
     - name: Grant execute permission for gradlew
       run: chmod +x gradlew
 
-    - name: Build Debug App
-      run: ./gradlew clean publishPatchedToMavenLocal assembleDebug
+    - name: Build APK
+      run: ./gradlew assembleDebug
 
     - name: Upload debug
       uses: actions/upload-artifact@v4.6.2
