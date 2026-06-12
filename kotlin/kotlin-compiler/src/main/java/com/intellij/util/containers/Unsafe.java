@@ -11,6 +11,7 @@ import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 
 @ApiStatus.Internal
 public final class Unsafe {
@@ -127,7 +128,12 @@ public final class Unsafe {
                                   Object destBase, long destOffset,
                                   long bytes) {
         try {
-            HiddenApiBypass.invoke(Unsafe.class, ReflectionUtil.getUnsafe(), "copyMemory", srcBase, srcOffset, destBase, destOffset, bytes);
+            Object unsafe = ReflectionUtil.getUnsafe();
+            Method m = unsafe.getClass().getMethod("copyMemory",
+                    Object.class, long.class, Object.class, long.class, long.class);
+            m.setAccessible(true);
+            m.invoke(unsafe, srcBase, srcOffset, destBase, destOffset, bytes);
+//            HiddenApiBypass.invoke(Unsafe.class, ReflectionUtil.getUnsafe(), "copyMemory", srcBase, srcOffset, destBase, destOffset, bytes);
         } catch (Throwable throwable) {
             throw new RuntimeException(throwable);
         }
