@@ -17,26 +17,30 @@
 package org.jetbrains.kotlin.cli.jvm.config
 
 import com.intellij.openapi.vfs.VirtualFile
+import org.jetbrains.kotlin.cli.CliDiagnostics.ROOTS_RESOLUTION_ERROR
 import org.jetbrains.kotlin.cli.common.CLIConfigurationKeys
 import org.jetbrains.kotlin.cli.common.config.ContentRoot
 import org.jetbrains.kotlin.cli.common.config.KotlinSourceRoot
+import org.jetbrains.kotlin.cli.jvm.modules.CoreJrtFileSystem
+import org.jetbrains.kotlin.cli.report
 import org.jetbrains.kotlin.config.CompilerConfiguration
+import org.jetbrains.kotlin.config.JVMConfigurationKeys
+import org.jetbrains.kotlin.utils.PathUtil
 import java.io.File
 import java.nio.file.Path
 
-interface JvmContentRootBase: ContentRoot
+interface JvmContentRootBase : ContentRoot
 
-interface JvmClasspathRootBase: JvmContentRootBase {
+interface JvmClasspathRootBase : JvmContentRootBase {
     val isSdkRoot: Boolean
 }
 
-interface JvmContentRoot: JvmContentRootBase {
+interface JvmContentRoot : JvmContentRootBase {
     val file: File
 }
 
-data class JvmClasspathRoot(override val file: File, override val isSdkRoot: Boolean):
-    JvmContentRoot, JvmClasspathRootBase {
-    constructor(file: File): this(file, false)
+data class JvmClasspathRoot(override val file: File, override val isSdkRoot: Boolean) : JvmContentRoot, JvmClasspathRootBase {
+    constructor(file: File) : this(file, false)
 }
 
 /**
@@ -54,13 +58,13 @@ data class VirtualJvmClasspathRoot(
     val file: VirtualFile,
     override val isSdkRoot: Boolean,
     val isFriend: Boolean = false,
-): JvmClasspathRootBase {
-    constructor(file: VirtualFile): this(file, false)
+) : JvmClasspathRootBase {
+    constructor(file: VirtualFile) : this(file, false)
 }
 
-data class JavaSourceRoot(override val file: File, val packagePrefix: String?): JvmContentRoot
+data class JavaSourceRoot(override val file: File, val packagePrefix: String?) : JvmContentRoot
 
-data class JvmModulePathRoot(override val file: File): JvmContentRoot
+data class JvmModulePathRoot(override val file: File) : JvmContentRoot
 
 fun CompilerConfiguration.addJvmClasspathRoot(file: File) {
     add(CLIConfigurationKeys.CONTENT_ROOTS, JvmClasspathRoot(file))
@@ -71,15 +75,11 @@ fun CompilerConfiguration.addJvmClasspathRoots(files: List<File>) {
 }
 
 fun CompilerConfiguration.addJvmSdkRoots(files: List<File>) {
-    addAll(
-        CLIConfigurationKeys.CONTENT_ROOTS,
-        0,
-        files.map { file -> JvmClasspathRoot(file, true) })
+    addAll(CLIConfigurationKeys.CONTENT_ROOTS, 0, files.map { file -> JvmClasspathRoot(file, true) })
 }
 
 val CompilerConfiguration.jvmClasspathRoots: List<File>
-    get() = getList(CLIConfigurationKeys.CONTENT_ROOTS).filterIsInstance<JvmClasspathRoot>()
-        .map(JvmContentRoot::file)
+    get() = getList(CLIConfigurationKeys.CONTENT_ROOTS).filterIsInstance<JvmClasspathRoot>().map(JvmContentRoot::file)
 
 fun CompilerConfiguration.jvmClasspathNioRoots(): Sequence<Path> {
     return getList(CLIConfigurationKeys.CONTENT_ROOTS).asSequence()
@@ -93,8 +93,7 @@ fun CompilerConfiguration.jvmClasspathNioRoots(): Sequence<Path> {
 }
 
 val CompilerConfiguration.jvmModularRoots: List<File>
-    get() = getList(CLIConfigurationKeys.CONTENT_ROOTS).filterIsInstance<JvmModulePathRoot>()
-        .map(JvmContentRoot::file)
+    get() = getList(CLIConfigurationKeys.CONTENT_ROOTS).filterIsInstance<JvmModulePathRoot>().map(JvmContentRoot::file)
 
 @JvmOverloads
 fun CompilerConfiguration.addJavaSourceRoot(file: File, packagePrefix: String? = null) {
@@ -116,19 +115,16 @@ val CompilerConfiguration.javaSourceRoots: Set<String>
     }
 
 fun CompilerConfiguration.configureJdkClasspathRoots() {
-    //if (getBoolean(JVMConfigurationKeys.NO_JDK)) return
+    if (getBoolean(JVMConfigurationKeys.NO_JDK)) return
 
-    //val javaRoot = get(JVMConfigurationKeys.JDK_HOME) ?: File(System.getProperty("java.home"))
-    //val classesRoots = PathUtil.getJdkClassesRootsFromJdkOrJre(javaRoot)
+    val javaRoot = get(JVMConfigurationKeys.JDK_HOME) ?: File(System.getProperty("java.home"))
+    val classesRoots = PathUtil.getJdkClassesRootsFromJdkOrJre(javaRoot)
 
-    //if (!CoreJrtFileSystem.isModularJdk(javaRoot)) {
-    //    if (classesRoots.isEmpty()) {
-    //        this.report(
-    //            ROOTS_RESOLUTION_ERROR,
-    //            "No class roots are found in the JDK path: $javaRoot"
-    //        )
-    //    } else {
-    //        addJvmSdkRoots(classesRoots)
-    //    }
-    //}
+    if (!CoreJrtFileSystem.isModularJdk(javaRoot)) {
+        if (classesRoots.isEmpty()) {
+            this.report(ROOTS_RESOLUTION_ERROR, "No class roots are found in the JDK path: $javaRoot")
+        } else {
+            addJvmSdkRoots(classesRoots)
+        }
+    }
 }

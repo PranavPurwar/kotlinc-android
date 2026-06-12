@@ -12,6 +12,7 @@ package org.jetbrains.kotlin.util
 import org.jetbrains.kotlin.platform.TargetPlatform
 import org.jetbrains.kotlin.platform.isCommon
 import org.jetbrains.kotlin.platform.isJs
+import org.jetbrains.kotlin.platform.isWasm
 import org.jetbrains.kotlin.stats.MarkdownReportRenderer
 import org.jetbrains.kotlin.stats.SingleReportsData
 import org.jetbrains.kotlin.stats.StatsCalculator
@@ -29,7 +30,7 @@ abstract class PerformanceManager(val targetPlatform: TargetPlatform, val presen
     }
 
     private lateinit var thread: Thread
-    //private lateinit var threadMXBean: ThreadMXBean
+//    private lateinit var threadMXBean: ThreadMXBean
 
     init {
         initializeCurrentThread()
@@ -38,14 +39,14 @@ abstract class PerformanceManager(val targetPlatform: TargetPlatform, val presen
     private fun currentTime(): Time = Time(
         System.nanoTime(),
         0, // threadMXBean.currentThreadUserTime,
-        0, // threadMXBean.currentThreadCpuTime
+        0 // threadMXBean.currentThreadCpuTime
     )
 
     private var currentPhaseType: PhaseType = PhaseType.Initialization
     private var phaseStartTime: Time? = currentTime()
-    //private var compilationMXBean: CompilationMXBean? = null
+//    private var compilationMXBean: CompilationMXBean? = null
     private var jitStartTime: Long? = null
-    //private var garbageCollectorMXBeans: List<GarbageCollectorMXBean> = emptyList()
+//    private var garbageCollectorMXBeans: List<GarbageCollectorMXBean> = emptyList()
 
     private val phaseMeasurements: SortedMap<PhaseType, Time> = sortedMapOf()
     private val phaseSideMeasurements: SortedMap<PhaseSideType, SideStats> = sortedMapOf()
@@ -78,14 +79,11 @@ abstract class PerformanceManager(val targetPlatform: TargetPlatform, val presen
     var detailedPerf: Boolean = false
 
     fun getTargetInfo(): String =
-        listOfNotNull(
-            targetDescription,
-            outputKind
-        ).joinToString("-") + " $files files ($lines lines)"
+        listOfNotNull(targetDescription, outputKind).joinToString("-") + " $files files ($lines lines)"
 
     fun initializeCurrentThread() {
         thread = Thread.currentThread()
-        //threadMXBean = ManagementFactory.getThreadMXBean().also { it.isThreadCpuTimeEnabled = true }
+//        threadMXBean = ManagementFactory.getThreadMXBean().also { it.isThreadCpuTimeEnabled = true }
     }
 
     val unitStats: UnitStats by lazy {
@@ -173,8 +171,7 @@ abstract class PerformanceManager(val targetPlatform: TargetPlatform, val presen
         }
 
         otherUnitStats.dynamicStats?.forEach { (phaseType, name, time) ->
-            dynamicPhaseMeasurements[phaseType to name] =
-                (dynamicPhaseMeasurements[phaseType to name] ?: Time.ZERO) + time
+            dynamicPhaseMeasurements[phaseType to name] = (dynamicPhaseMeasurements[phaseType to name] ?: Time.ZERO) + time
         }
 
         otherUnitStats.klibElementStats?.forEach { (path, size) ->
@@ -183,8 +180,7 @@ abstract class PerformanceManager(val targetPlatform: TargetPlatform, val presen
 
         otherUnitStats.forEachPhaseSideMeasurement { phaseSideType, sideStats ->
             if (sideStats != null) {
-                phaseSideMeasurements[phaseSideType] =
-                    (phaseSideMeasurements[phaseSideType] ?: SideStats.EMPTY) + sideStats
+                phaseSideMeasurements[phaseSideType] = (phaseSideMeasurements[phaseSideType] ?: SideStats.EMPTY) + sideStats
             }
         }
 
@@ -211,6 +207,7 @@ abstract class PerformanceManager(val targetPlatform: TargetPlatform, val presen
             firstPlatformName.contains("JVM") -> PlatformType.JVM
             firstPlatformName.contains("Native") -> PlatformType.Native
             targetPlatform.isJs() -> PlatformType.JS
+            targetPlatform.isWasm() -> PlatformType.Wasm
             targetPlatform.isCommon() -> PlatformType.Common
             else -> error("Unexpected platform $targetPlatform")
         }
@@ -222,12 +219,12 @@ abstract class PerformanceManager(val targetPlatform: TargetPlatform, val presen
         if (!compilerType.isK2) {
             PerformanceCounter.setTimeCounterEnabled(true)
         }
-        //compilationMXBean = ManagementFactory.getCompilationMXBean()
-        //jitStartTime = compilationMXBean?.totalCompilationTime
-        //garbageCollectorMXBeans = ManagementFactory.getGarbageCollectorMXBeans()
-        //garbageCollectorMXBeans.associateTo(gcMeasurements) {
-        //    it.name to GarbageCollectionStats(it.name, it.collectionTime, it.collectionCount)
-        //}
+//        compilationMXBean = ManagementFactory.getCompilationMXBean()
+//        jitStartTime = compilationMXBean?.totalCompilationTime
+//        garbageCollectorMXBeans = ManagementFactory.getGarbageCollectorMXBeans()
+//        garbageCollectorMXBeans.associateTo(gcMeasurements) {
+//            it.name to GarbageCollectionStats(it.name, it.collectionTime, it.collectionCount)
+//        }
     }
 
     open fun addSourcesStats(files: Int, lines: Int) {
@@ -250,8 +247,7 @@ abstract class PerformanceManager(val targetPlatform: TargetPlatform, val presen
         assertIfDebug(localCurrentDynamicPhaseTime != null) { "Dynamic measurement $name must have been started before finishing" }
         if (localCurrentDynamicPhaseTime != null) {
             dynamicPhaseMeasurements[parentPhaseType to name] =
-                (dynamicPhaseMeasurements[parentPhaseType to name]
-                    ?: Time.ZERO) + (currentTime() - localCurrentDynamicPhaseTime)
+                (dynamicPhaseMeasurements[parentPhaseType to name] ?: Time.ZERO) + (currentTime() - localCurrentDynamicPhaseTime)
         }
         currentDynamicPhaseTime = null
     }
@@ -294,20 +290,20 @@ abstract class PerformanceManager(val targetPlatform: TargetPlatform, val presen
 
         if (!isExtendedStatsEnabled) return
 
-        //for (garbageCollectorMXBean in garbageCollectorMXBeans) {
-        //    val startGcMeasurement = gcMeasurements.getValue(garbageCollectorMXBean.name)
-        //    gcMeasurements[garbageCollectorMXBean.name] = GarbageCollectionStats(
-        //        garbageCollectorMXBean.name,
-        //        garbageCollectorMXBean.collectionTime - startGcMeasurement.millis,
-        //        garbageCollectorMXBean.collectionCount - startGcMeasurement.count,
-        //    )
-        //}
-
-        //val localCompilationMXBean = compilationMXBean
-        //val localJitStartTime = jitStartTime
-        //if (localCompilationMXBean != null && localJitStartTime != null) {
-        //    jitTimeMillis = localCompilationMXBean.totalCompilationTime - localJitStartTime
-        //}
+//        for (garbageCollectorMXBean in garbageCollectorMXBeans) {
+//            val startGcMeasurement = gcMeasurements.getValue(garbageCollectorMXBean.name)
+//            gcMeasurements[garbageCollectorMXBean.name] = GarbageCollectionStats(
+//                garbageCollectorMXBean.name,
+//                garbageCollectorMXBean.collectionTime - startGcMeasurement.millis,
+//                garbageCollectorMXBean.collectionCount - startGcMeasurement.count,
+//            )
+//        }
+//
+//        val localCompilationMXBean = compilationMXBean
+//        val localJitStartTime = jitStartTime
+//        if (localCompilationMXBean != null && localJitStartTime != null) {
+//            jitTimeMillis = localCompilationMXBean.totalCompilationTime - localJitStartTime
+//        }
 
         if (!compilerType.isK2) {
             PerformanceCounter.report { s -> extendedStats += s }
@@ -328,8 +324,7 @@ abstract class PerformanceManager(val targetPlatform: TargetPlatform, val presen
         val localPhaseStartTime = phaseStartTime
         assertIfDebug(localPhaseStartTime != null) { "Measurement of $phaseType must have been started before finishing" }
         if (localPhaseStartTime != null) {
-            phaseMeasurements[phaseType] =
-                (phaseMeasurements[phaseType] ?: Time.ZERO) + (currentTime() - localPhaseStartTime)
+            phaseMeasurements[phaseType] = (phaseMeasurements[phaseType] ?: Time.ZERO) + (currentTime() - localPhaseStartTime)
         }
         phaseStartTime = null
     }
@@ -346,14 +341,10 @@ abstract class PerformanceManager(val targetPlatform: TargetPlatform, val presen
             if (isPhaseMeasuring) {
                 // Subtract side measurement time to get a more refined result
                 // The time could be negative at the moment but should be normalized after the `notifyPhaseFinished` call.
-                phaseMeasurements[currentPhaseType] =
-                    (phaseMeasurements[currentPhaseType] ?: Time.ZERO) - elapsedTime
+                phaseMeasurements[currentPhaseType] = (phaseMeasurements[currentPhaseType] ?: Time.ZERO) - elapsedTime
             }
             phaseSideMeasurements[phaseSideType] =
-                (phaseSideMeasurements[phaseSideType] ?: SideStats.EMPTY) + SideStats(
-                    1,
-                    elapsedTime
-                )
+                (phaseSideMeasurements[phaseSideType] ?: SideStats.EMPTY) + SideStats(1, elapsedTime)
         }
     }
 
@@ -366,9 +357,7 @@ abstract class PerformanceManager(val targetPlatform: TargetPlatform, val presen
     fun dumpPerformanceReport(destFileNameOrPlaceholder: String) {
         val refinedFileName: String = if (File(destFileNameOrPlaceholder).isDirectory) {
             // We can't use `Paths.get` because of its absence in earlier Android SDKs
-            val separator = if (destFileNameOrPlaceholder.lastOrNull()
-                    .let { it == null || it == File.separatorChar }
-            ) {
+            val separator = if (destFileNameOrPlaceholder.lastOrNull().let { it == null || it == File.separatorChar }) {
                 ""
             } else {
                 File.separatorChar
@@ -377,14 +366,11 @@ abstract class PerformanceManager(val targetPlatform: TargetPlatform, val presen
         } else {
             val lastSlashIndex = destFileNameOrPlaceholder.indexOfLast { it == File.separatorChar }
             val extensionDotIndex =
-                destFileNameOrPlaceholder.indexOf('.', lastSlashIndex)
-                    .let { if (it == -1) destFileNameOrPlaceholder.length else it }
+                destFileNameOrPlaceholder.indexOf('.', lastSlashIndex).let { if (it == -1) destFileNameOrPlaceholder.length else it }
             // It's ok if `lastSlashIndex` == -1
-            val fileNameOrPlaceholder =
-                destFileNameOrPlaceholder.substring(lastSlashIndex + 1, extensionDotIndex)
+            val fileNameOrPlaceholder = destFileNameOrPlaceholder.substring(lastSlashIndex + 1, extensionDotIndex)
             if (fileNameOrPlaceholder == "*") {
-                val pathString =
-                    if (lastSlashIndex != -1) destFileNameOrPlaceholder.take(lastSlashIndex + 1) else ""
+                val pathString = if (lastSlashIndex != -1) destFileNameOrPlaceholder.take(lastSlashIndex + 1) else ""
                 val fileName = generateFileName()
                 val extension = destFileNameOrPlaceholder.substring(extensionDotIndex)
                 pathString + fileName + extension
@@ -394,9 +380,7 @@ abstract class PerformanceManager(val targetPlatform: TargetPlatform, val presen
         }
 
         val destinationFile = File(refinedFileName)
-        val dumpFormat =
-            DumpFormat.entries.firstOrNull { it.extension == destinationFile.extension }
-                ?: DumpFormat.PlainText
+        val dumpFormat = DumpFormat.entries.firstOrNull { it.extension == destinationFile.extension } ?: DumpFormat.PlainText
         destinationFile.writeBytes(createPerformanceReport(dumpFormat).toByteArray())
     }
 
@@ -423,7 +407,6 @@ abstract class PerformanceManager(val targetPlatform: TargetPlatform, val presen
             append("$presentableName performance report\n")
             forEachStringMeasurement { appendLine(it) }
         }
-
         DumpFormat.Json -> UnitStatsJsonDumper.dump(unitStats)
         DumpFormat.Markdown -> MarkdownReportRenderer(StatsCalculator(SingleReportsData(unitStats))).render()
     }
@@ -446,21 +429,14 @@ abstract class PerformanceManager(val targetPlatform: TargetPlatform, val presen
     }
 }
 
-class PerformanceManagerImpl(targetPlatform: TargetPlatform, presentableName: String):
-    PerformanceManager(targetPlatform, presentableName) {
+class PerformanceManagerImpl(targetPlatform: TargetPlatform, presentableName: String) : PerformanceManager(targetPlatform, presentableName) {
     companion object {
         /**
          * Useful for measuring time when a pipeline is split on multiple parallel steps (in multithread mode or not)
          */
-        fun createChildIfNeeded(
-            mainPerformanceManager: PerformanceManager?,
-            start: Boolean
-        ): PerformanceManagerImpl? {
+        fun createChildIfNeeded(mainPerformanceManager: PerformanceManager?, start: Boolean): PerformanceManagerImpl? {
             return if (mainPerformanceManager != null) {
-                PerformanceManagerImpl(
-                    mainPerformanceManager.targetPlatform,
-                    mainPerformanceManager.presentableName + " (Child)"
-                ).also {
+                PerformanceManagerImpl(mainPerformanceManager.targetPlatform, mainPerformanceManager.presentableName + " (Child)").also {
                     if (!start) {
                         // Currently, the perf manager is implemented in a way to start the initial measurement immediately after creating.
                         // If we don't need to measure the initial phase, the only thing we can do is to stop it immediately.
@@ -490,11 +466,7 @@ inline fun <T> PerformanceManager?.tryMeasurePhaseTime(phaseType: PhaseType, blo
     }
 }
 
-inline fun <T> PerformanceManager?.tryMeasureDynamicPhaseTime(
-    name: String,
-    parentPhaseType: PhaseType,
-    block: () -> T
-): T {
+inline fun <T> PerformanceManager?.tryMeasureDynamicPhaseTime(name: String, parentPhaseType: PhaseType, block: () -> T): T {
     if (this == null) return block()
 
     try {
@@ -505,10 +477,7 @@ inline fun <T> PerformanceManager?.tryMeasureDynamicPhaseTime(
     }
 }
 
-@RequiresOptIn(
-    level = RequiresOptIn.Level.WARNING,
-    message = "All phase performance measurements should be finished explicitly"
-)
+@RequiresOptIn(level = RequiresOptIn.Level.WARNING, message = "All phase performance measurements should be finished explicitly")
 annotation class PotentiallyIncorrectPhaseTimeMeasurement
 
 @RequiresOptIn(level = RequiresOptIn.Level.WARNING, message = "Don't use in K2")

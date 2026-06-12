@@ -17,7 +17,7 @@ import java.io.PrintStream
 import java.io.PrintWriter
 import java.io.StringWriter
 
-class MainActivity: AppCompatActivity() {
+class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -68,13 +68,13 @@ class MainActivity: AppCompatActivity() {
             val output = StringWriter()
             val writer = PrintWriter(output)
 
-            val stream = PrintStream(object: OutputStream() {
+            val stream = PrintStream(object : OutputStream() {
                 override fun write(p0: Int) {
                     writer.write(p0)
                 }
             })
 
-                val compiler = K2JVMCompiler()
+            val compiler = K2JVMCompiler()
 
             val exitCode = compiler.exec(
                 stream,

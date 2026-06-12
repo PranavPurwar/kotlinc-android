@@ -1,5 +1,5 @@
 [versions]
-agp = "9.3.0-alpha01"
+agp = "9.3.0-alpha12"
 coreKtx = "1.18.0"
 appcompat = "1.7.1"
 activityKtx = "1.13.0"

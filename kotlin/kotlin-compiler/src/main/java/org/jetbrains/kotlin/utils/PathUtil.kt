@@ -18,6 +18,7 @@ package org.jetbrains.kotlin.utils
 
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.PathManager
+
 import java.io.File
 import java.nio.file.Paths
 import java.util.regex.Pattern
@@ -100,8 +101,7 @@ object PathUtil {
     const val KOTLIN_COMPILER_JAR = "$KOTLIN_COMPILER_NAME.jar"
 
     @JvmField
-    val KOTLIN_RUNTIME_JAR_PATTERN: Pattern =
-        Pattern.compile("kotlin-(stdlib|runtime)(-\\d[\\d.]+(-.+)?)?\\.jar")
+    val KOTLIN_RUNTIME_JAR_PATTERN: Pattern = Pattern.compile("kotlin-(stdlib|runtime)(-\\d[\\d.]+(-.+)?)?\\.jar")
     val KOTLIN_STDLIB_JS_JAR_PATTERN: Pattern = Pattern.compile("kotlin-stdlib-js.*\\.jar")
     val KOTLIN_STDLIB_COMMON_JAR_PATTERN: Pattern = Pattern.compile("kotlin-stdlib-common.*\\.jar")
     val KOTLIN_JS_LIBRARY_JAR_PATTERN: Pattern = Pattern.compile("kotlin-js-library.*\\.jar")
@@ -131,8 +131,7 @@ object PathUtil {
             // PathUtil.class is located not in the kotlin-compiler*.jar, so it must be a test, and we'll take KotlinPaths from "dist/"
             // (when running tests, PathUtil.class is in its containing module's artifact, i.e. util-{version}.jar)
             // Use "kotlin.dist.path" if set by test infrastructure (via withDist()) to avoid relying on the working directory
-            System.getProperty("kotlin.dist.path")
-                ?.let { KotlinPathsFromHomeDir(File(it, HOME_FOLDER_NAME)) }
+            System.getProperty("kotlin.dist.path")?.let { KotlinPathsFromHomeDir(File(it, HOME_FOLDER_NAME)) }
                 ?: kotlinPathsForDistDirectory
         }
 
@@ -173,9 +172,7 @@ object PathUtil {
     @JvmStatic
     fun getResourcePathForClass(aClass: Class<*>): File {
         val path = "/" + aClass.name.replace('.', '/') + ".clazz"
-        val resourceRoot = PathManager.getResourceRoot(aClass, path) ?: throw IllegalStateException(
-            "Resource not found: $path"
-        )
+        val resourceRoot = PathManager.getResourceRoot(aClass, path) ?: throw IllegalStateException("Resource not found: $path")
         return File(resourceRoot).absoluteFile
     }
 
