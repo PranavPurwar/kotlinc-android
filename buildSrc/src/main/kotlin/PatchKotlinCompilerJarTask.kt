@@ -5,7 +5,11 @@ import org.gradle.api.Project
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.ProjectLayout
 import org.gradle.api.provider.Property
-import org.gradle.api.tasks.*
+import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.Internal
+import org.gradle.api.tasks.Optional
+import org.gradle.api.tasks.OutputFile
+import org.gradle.api.tasks.TaskAction
 import java.io.File
 
 open class PatchKotlinCompilerJarTask : DefaultTask() {
@@ -56,6 +60,8 @@ open class PatchKotlinCompilerJarTask : DefaultTask() {
     @TaskAction
     fun patchJar() {
         val version = kotlinCompilerVersion.orNull ?: throw IllegalArgumentException("Set kotlinCompilerVersion in gradle.properties or with -PkotlinCompilerVersion")
+
+        println("Patching Kotlin compiler version $version from source project '${sourceProjectPath.get()}'")
 
         val patchedJar = patchedJarFile.get().asFile
 
