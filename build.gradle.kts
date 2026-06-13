@@ -51,7 +51,7 @@ publishing {
                 addDep("org.jdom", "jdom", "2.0.2")
                 addDep("org.antlr", "antlr4-runtime", "4.13.2")
                 addDep("io.vavr", "vavr", "1.0.1")
-                addDep("com.github.PranavPurwar", "javac-android", "26.0.0")
+                addDep("com.github.PranavPurwar", "javac-android", "27.23")
                 addDep("com.github.Cosmic-IDE.kotlinc-android", "jaxp", "fce2462f00")
 
             }

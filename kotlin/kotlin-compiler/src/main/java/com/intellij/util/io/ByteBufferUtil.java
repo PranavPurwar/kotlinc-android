@@ -1,17 +1,19 @@
 // Copyright 2000-2023 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
 package com.intellij.util.io;
 
+import android.annotation.SuppressLint;
+
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.util.ReflectionUtil;
 import com.intellij.util.containers.Unsafe;
 import com.intellij.util.lang.JavaVersion;
-
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.lsposed.hiddenapibypass.HiddenApiBypass;
 
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
-import java.lang.reflect.Method;
 import java.nio.ByteBuffer;
 
 public final class ByteBufferUtil {
@@ -19,27 +21,33 @@ public final class ByteBufferUtil {
     private static final MethodHandle address = findAddress();
     private static final int byteArrayBaseOffset = byteArrayBaseOffset();
 
+    static {
+        HiddenApiBypass.addHiddenApiExemptions();
+    }
+
     private static @Nullable MethodHandle findInvokeCleaner() {
-        MethodHandle invokeCleaner = null;
-        try {
-            if (JavaVersion.current().feature >= 9) {
+//        MethodHandle invokeCleaner = null;
+//        try {
+//            if (JavaVersion.current().feature >= 9) {
 //                Object unsafe = ReflectionUtil.getUnsafe();
 //                MethodType type = MethodType.methodType(void.class, ByteBuffer.class);
 //                invokeCleaner = MethodHandles.publicLookup().findVirtual(unsafe.getClass(), "invokeCleaner", type).bindTo(unsafe);
+//            }
+//        }
+//        catch (Throwable t) {
+//            Logger.getInstance(ByteBufferUtil.class).warn(t);
+//        }
+//        return invokeCleaner;
 
-                Method cleanerMethod = Class.forName("java.nio.DirectByteBuffer").getMethod("cleaner");
-                Method cleanMethod = Class.forName("sun.misc.Cleaner").getMethod("clean");
-
-                MethodHandle handle = MethodHandles.lookup().unreflect(cleanMethod);
-                MethodHandle cleanerGetter = MethodHandles.lookup().unreflect(cleanerMethod);
-
-                return MethodHandles.filterArguments(handle, 0, cleanerGetter);
-            }
+        try {
+            Class<?> nioUtilsClass = Class.forName("java.nio.NioUtils");
+            @SuppressLint("DiscouragedPrivateApi") java.lang.reflect.Method freeMethod = nioUtilsClass.getDeclaredMethod("freeDirectBuffer", ByteBuffer.class);
+            freeMethod.setAccessible(true);
+            return MethodHandles.lookup().unreflect(freeMethod);
+        } catch (Throwable t) {
+            Logger.getInstance(ByteBufferUtil.class).warn("Failed to bind Android's NioUtils.freeDirectBuffer", t);
+            return null;
         }
-        catch (Throwable t) {
-            Logger.getInstance(ByteBufferUtil.class).warn(t);
-        }
-        return invokeCleaner;
     }
 
     private static @Nullable MethodHandle findAddress() {

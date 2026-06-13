@@ -42,5 +42,5 @@ dependencies {
     implementation("com.github.Cosmic-IDE.kotlinc-android:jaxp:fce2462f00")
 
     implementation(project(path = ":", configuration = "patchedKotlinc"))
-    implementation("com.github.PranavPurwar:javac-android:26.0.0")
+    implementation("com.github.PranavPurwar:javac-android:27.23")
 }

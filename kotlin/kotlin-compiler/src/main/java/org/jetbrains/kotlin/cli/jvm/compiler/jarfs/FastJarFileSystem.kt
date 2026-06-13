@@ -4,6 +4,7 @@
  */
 package org.jetbrains.kotlin.cli.jvm.compiler.jarfs
 
+import android.annotation.SuppressLint
 import com.intellij.openapi.util.Couple
 import com.intellij.openapi.vfs.DeprecatedVirtualFileSystem
 import com.intellij.openapi.vfs.StandardFileSystems
@@ -107,14 +108,19 @@ class FastJarFileSystem private constructor(internal val unmapBuffer: MappedByte
 
 private fun prepareCleanerCallback(): ((ByteBuffer) -> Unit)? {
     return try {
+        val nioUtilsClass = Class.forName("java.nio.NioUtils")
+        @SuppressLint("DiscouragedPrivateApi")
+        val freeMethod = nioUtilsClass.getDeclaredMethod("freeDirectBuffer", ByteBuffer::class.java)
+        freeMethod.isAccessible = true;
+            { buffer: ByteBuffer -> freeMethod.invoke(null, buffer) }
         //if (IS_PRIOR_9_JRE) {
-            val cleaner = Class.forName("java.nio.DirectByteBuffer").getMethod("cleaner")
-            cleaner.isAccessible = true
-
-            val clean = Class.forName("sun.misc.Cleaner").getMethod("clean")
-            clean.isAccessible = true
-
-            { buffer: ByteBuffer -> cleaner.invoke(buffer)?.let { clean.invoke(it) } }
+//            val cleaner = Class.forName("java.nio.DirectByteBuffer").getMethod("cleaner")
+//            cleaner.isAccessible = true
+//
+//            val clean = Class.forName("sun.misc.Cleaner").getMethod("clean")
+//            clean.isAccessible = true
+//
+//            { buffer: ByteBuffer -> cleaner.invoke(buffer)?.let { clean.invoke(it) } }
         //} else {
         //    val unsafeClass = try {
         //        Class.forName("sun.misc.Unsafe")

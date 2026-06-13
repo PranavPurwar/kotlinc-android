@@ -23,6 +23,11 @@ public final class Unsafe {
     private static final MethodHandle objectFieldOffset;
     private static final MethodHandle arrayIndexScale;
     private static final MethodHandle arrayBaseOffset;
+    private static final MethodHandle copyMemoryOffHeap;
+    private static final MethodHandle copyMemoryFromPrimitive;
+    private static final MethodHandle copyMemoryToPrimitive;
+    private static final MethodHandle getByte;
+    private static final MethodHandle putByte;
 
     static {
         HiddenApiBypass.addHiddenApiExemptions();
@@ -35,6 +40,11 @@ public final class Unsafe {
             objectFieldOffset = find("objectFieldOffset", long.class, Field.class);
             arrayBaseOffset = find("arrayBaseOffset", int.class, Class.class);
             arrayIndexScale = find("arrayIndexScale", int.class, Class.class);
+            copyMemoryOffHeap = find("copyMemory", void.class, long.class, long.class, long.class);
+            copyMemoryFromPrimitive = find("copyMemoryFromPrimitiveArray", void.class, Object.class, long.class, long.class, long.class);
+            copyMemoryToPrimitive = find("copyMemoryToPrimitiveArray", void.class, long.class, Object.class, long.class, long.class);
+            getByte = find("getByte", byte.class, Object.class, long.class);
+            putByte = find("putByte", void.class, Object.class, long.class, byte.class);
         } catch (Throwable t) {
             throw new Error(t);
         }
@@ -128,12 +138,21 @@ public final class Unsafe {
                                   Object destBase, long destOffset,
                                   long bytes) {
         try {
-            Object unsafe = ReflectionUtil.getUnsafe();
-            Method m = unsafe.getClass().getMethod("copyMemory",
-                    Object.class, long.class, Object.class, long.class, long.class);
-            m.setAccessible(true);
-            m.invoke(unsafe, srcBase, srcOffset, destBase, destOffset, bytes);
-//            HiddenApiBypass.invoke(Unsafe.class, ReflectionUtil.getUnsafe(), "copyMemory", srcBase, srcOffset, destBase, destOffset, bytes);
+            if (srcBase == null && destBase == null) {
+                copyMemoryOffHeap.invokeExact(srcOffset, destOffset, bytes);
+            }
+            else if (srcBase != null && destBase == null) {
+                copyMemoryFromPrimitive.invokeExact(srcBase, srcOffset, destOffset, bytes);
+            }
+            else if (srcBase == null && destBase != null) {
+                copyMemoryToPrimitive.invokeExact(srcOffset, destBase, destOffset, bytes);
+            }
+            else {
+                for (long i = 0; i < bytes; i++) {
+                    byte b = (byte) getByte.invokeExact(srcBase, srcOffset + i);
+                    putByte.invokeExact(destBase, destOffset + i, b);
+                }
+            }
         } catch (Throwable throwable) {
             throw new RuntimeException(throwable);
         }
