@@ -22,8 +22,6 @@ public final class Unsafe {
     private static final MethodHandle objectFieldOffset;
     private static final MethodHandle arrayIndexScale;
     private static final MethodHandle arrayBaseOffset;
-    private static final MethodHandle copyMemory;
-
 
     static {
         HiddenApiBypass.addHiddenApiExemptions();
@@ -36,7 +34,6 @@ public final class Unsafe {
             objectFieldOffset = find("objectFieldOffset", long.class, Field.class);
             arrayBaseOffset = find("arrayBaseOffset", int.class, Class.class);
             arrayIndexScale = find("arrayIndexScale", int.class, Class.class);
-            copyMemory = find("copyMemory", void.class, Object.class, long.class, Object.class, long.class, long.class);
         } catch (Throwable t) {
             throw new Error(t);
         }
@@ -122,17 +119,6 @@ public final class Unsafe {
         try {
             return (int) arrayBaseOffset.invokeExact(arrayClass);
         } catch (Throwable throwable) {
-            throw new RuntimeException(throwable);
-        }
-    }
-
-    public static void copyMemory(Object srcBase, long srcOffset,
-                                  Object destBase, long destOffset,
-                                  long bytes) {
-        try {
-            copyMemory.invokeExact(srcBase, srcOffset, destBase, destOffset, bytes);
-        }
-        catch (Throwable throwable) {
             throw new RuntimeException(throwable);
         }
     }
