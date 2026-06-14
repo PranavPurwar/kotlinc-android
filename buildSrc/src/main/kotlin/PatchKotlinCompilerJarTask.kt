@@ -150,7 +150,8 @@ open class PatchKotlinCompilerJarTask : DefaultTask() {
             "kotlinx/collections",
             "org/antlr/v4/runtime",
             "io/vavr",
-            "kotlin"
+            "kotlin",
+            "it/unimi/dsi/fastutil"
         )
         val packages = stripPackages.orNull?.split(',')?.map { it.trim() } ?: defaultPackages
         packages.forEach { pkg -> File(unpackedDir, pkg).takeIf { it.exists() }?.deleteRecursively() }

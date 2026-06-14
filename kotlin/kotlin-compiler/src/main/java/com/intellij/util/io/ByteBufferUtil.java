@@ -4,9 +4,9 @@ package com.intellij.util.io;
 import android.annotation.SuppressLint;
 
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.util.ReflectionUtil;
 import com.intellij.util.containers.Unsafe;
 import com.intellij.util.lang.JavaVersion;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.lsposed.hiddenapibypass.HiddenApiBypass;
@@ -104,17 +104,6 @@ public final class ByteBufferUtil {
     }
 
     public static void copyMemory(@NotNull ByteBuffer src, int index, byte[] dst, int dstIndex, int length) {
-        if (address != null && src.isDirect()) {
-            try {
-                long address = (long)ByteBufferUtil.address.invoke(src);
-                Unsafe.copyMemory(null, address + index, dst, byteArrayBaseOffset + dstIndex, length);
-                return;
-            }
-            catch (Throwable e) {
-                getLogger().warn(e);
-            }
-        }
-
         ByteBuffer buf = src.duplicate();
         buf.position(index);
         buf.get(dst, dstIndex, length);

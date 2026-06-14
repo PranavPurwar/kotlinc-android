@@ -41,6 +41,7 @@ dependencies {
     implementation("org.jdom:jdom:2.0.2")
     implementation("com.google.guava:guava:33.6.0-android")
     implementation("org.jetbrains:annotations:26.1.0")
+//    implementation("it.unimi.dsi:fastutil:8.5.18")
 
     //noinspection GradleDependency
     implementation("org.jetbrains.kotlin:kotlin-compiler:$kotlinCompilerVersion")

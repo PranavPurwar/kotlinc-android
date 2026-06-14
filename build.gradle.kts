@@ -53,7 +53,7 @@ publishing {
                 addDep("io.vavr", "vavr", "1.0.1")
                 addDep("com.github.PranavPurwar", "javac-android", "27.23")
                 addDep("com.github.Cosmic-IDE.kotlinc-android", "jaxp", "fce2462f00")
-
+                addDep("it.unimi.dsi", "fastutil", "8.5.18")
             }
         }
     }
